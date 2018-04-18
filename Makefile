@@ -22,15 +22,14 @@ test: gs_seq gs_pth
 	@echo '**********************************************************************'
 	@echo 'Starting sequential reference run...'
 	@echo '**********************************************************************'
-	./gs_seq -s 512 -o $(TMP_PREFIX)gs_seq.test.out
+	./gs_seq -o $(TMP_PREFIX)gs_seq.test.out
 	@echo
 
 	@echo '**********************************************************************'
 	@echo 'Starting parallel run...'
 	@echo '**********************************************************************'
-	./gs_pth -s 512 -o $(TMP_PREFIX)gs_pth.test.out
+	./gs_pth -t 8 -o $(TMP_PREFIX)gs_pth.test.out
 	@echo
-
 	@echo "Test results: "
 	@if diff -q "$(TMP_PREFIX)gs_seq.test.out" \
 		    "$(TMP_PREFIX)gs_pth.test.out" >/dev/null; then	\

@@ -173,8 +173,11 @@ run_gs()
 
                 gs_verbose_printf("\t****  Cleaning up...  ****\n");
                 gsi_finish();
-        gs_verbose_printf("\t****  Error here? ****\n");
-		free(gs_matrix);
+        	gs_verbose_printf("\t****  Error here? ****\n");
+		
+
+
+free(gs_matrix);
   
                 fprintf(stdout,"**** Summary ****\n");
                 fprintf(stdout,"   Execution time: %f s\n", exec_time);

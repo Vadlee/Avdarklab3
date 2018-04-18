@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "gs_interface.h"
 
@@ -30,7 +31,7 @@ typedef struct {
         pthread_t thread;
 
         volatile double error;
-
+	char dummie[64-sizeof(int)-sizeof(double)-sizeof(pthread_t)];
         /* TASK: Do you need any thread local state for synchronization? */
 } thread_info_t;
 
@@ -48,7 +49,7 @@ thread_info_t *threads = NULL;
 /** The global error for the last iteration */
 static double global_error;
 pthread_barrier_t mybarrier;
-int *flagArray;
+volatile int *flagArray;
 
 
 void
@@ -82,10 +83,14 @@ gsi_finish()
          * gsi_init()
          */         
         gs_verbose_printf("\t****  ddasdsad ****\n");
-        //free(flagArray);
+        free((int*)flagArray);
+
         gs_verbose_printf("\t****  ddasdsad ****\n");
+
         pthread_barrier_destroy(&mybarrier);
+
         gs_verbose_printf("\t****  ddasdsad ****\n");
+
         if (threads)
                 free(threads);
         gs_verbose_printf("\t****  3333333333333****\n");
@@ -109,11 +114,8 @@ thread_sweep(int tid, int iter, int lbound, int rbound)
                  * to the left */
 
                 if (tid!=0){
-	
-                    while(flagArray[tid-1+gs_nthreads*(row-1)] !=1 ){
-			printf(" ");
-}
-		    flagArray[tid-1+gs_nthreads*(row-1)] = 0;
+                    while(flagArray[tid-1+(gs_nthreads-1)*(row-1)] !=1 ){}
+		    flagArray[tid-1+(gs_nthreads-1)*(row-1)] = 0;
                 }
 
                 dprintf("%d: Starting on row: %d\n", tid, row);
@@ -133,7 +135,7 @@ thread_sweep(int tid, int iter, int lbound, int rbound)
                 /* TASK: Tell the thread to the right that this thread
                  * is done */
                 if (tid!=gs_nthreads-1){
-	            flagArray[tid + gs_nthreads*(row-1)] = 1;
+	            flagArray[tid + (gs_nthreads-1)*(row-1)] = 1;
                 }
 
 
@@ -159,7 +161,7 @@ thread_compute(void *_self)
             lbound++;
         }
 
-        rbound = gs_size/gs_nthreads*(tid+1)-1;
+        rbound = gs_size/gs_nthreads*(tid+1);
         if (tid == gs_nthreads-1){
             rbound--;
         }
@@ -171,8 +173,9 @@ thread_compute(void *_self)
         for (int iter = 0;
              iter < gs_iterations && global_error > gs_tolerance;
              iter++) {
-                printf("%i: Starting iteration %i\n", tid, iter);
+                dprintf("%i: Starting iteration %i\n", tid, iter);
 
+		
                 thread_sweep(tid, iter, lbound, rbound);
 
                 /* TASK: Update global error */
@@ -183,12 +186,13 @@ thread_compute(void *_self)
                  * sweep last? */
 
                 if (tid==gs_nthreads-1){
-                    for (int i = 1; i < gs_nthreads; i++){
+			global_error = 0;
+                    for (int i = 0; i < gs_nthreads; i++){
                         global_error += threads[i].error;
                     }
                 }
 
-                printf("%d: iteration %d done\n", tid, iter);
+                dprintf("%d: iteration %d done\n", tid, iter);
 
                 /* TASK: Iteration barrier */
 
