@@ -75,6 +75,7 @@ gsi_calculate()
                 error = sweep();
                 gs_verbose_printf("Iteration: %i, Error: %f\n", i, error);
         }
+	printf("gs_iter = %i \n", gs_iterations);
 
         if (error <= gs_tolerance)
                 printf("Solution converged after %i iterations.\n", i);
